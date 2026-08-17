@@ -23,9 +23,6 @@ models/
 *.mp3
 *.m4a
 
-# Large demo video (too big for GitHub; host it externally or convert to GIF)
-*.mp4
-
 # Observability / logs
 *.log
 langfuse.db
