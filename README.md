@@ -110,7 +110,13 @@ A few observations shaped the design:
 
 ## Screenshots / Demo
 
-A full run takes about a minute: record or paste a meeting, let Google Gemini extract the structure, review it, and push the confirmed tasks to Notion. **[Watch the demo video](img/demo.mp4).**
+A full run takes about a minute: record or paste a meeting, let Google Gemini extract the structure, review it, and push the confirmed tasks to Notion.
+
+<!-- DEMO VIDEO: paste your GitHub user-attachments URL on the line below to embed an inline player. See the note under the screenshots. -->
+
+Click the image below to play the demo:
+
+[![Watch the demo](img/01-transcript-actions.png)](img/demo.mp4)
 
 **1. Capture and extract.** Record live from the mic or paste a transcript. The Live Transcript shows on the left, and the extracted Action Items appear on the right. You can also ask the agent a question grounded in the meeting.
 
