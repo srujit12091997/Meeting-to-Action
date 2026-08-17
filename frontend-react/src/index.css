@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #134e4a;         /* foreground */
+  background: #f0fdfa;    /* flat light-teal canvas — no gradients */
+  transition: background-color .2s ease, color .2s ease;
+}
+html.dark body {
+  color: #e2e8f0;
+  background: #0f172a;    /* slate-900 canvas in dark mode */
+}
+
+/* thin scrollbars */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #99f6e4; border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: #5eead4; }
+html.dark *::-webkit-scrollbar-thumb { background: #334155; }
+
+/* Respect reduced-motion (UX guideline) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

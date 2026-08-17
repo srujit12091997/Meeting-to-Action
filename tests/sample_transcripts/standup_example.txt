@@ -1,0 +1,15 @@
+Weekly Product Standup — 2026-08-07
+
+Sarah: Morning everyone. Let's keep it quick. Raj, where are we on the login bug?
+Raj: Still seeing the intermittent 500 on OAuth. I'll dig into it today and should have a fix by Thursday.
+Sarah: Great. We really need that before the client demo Friday.
+Priya: On the analytics dashboard — the charts are rendering but the date filter is broken. Someone needs to look at that, not sure who owns the frontend right now.
+Sarah: Let's figure out ownership after this. Priya, can you at least document the repro steps?
+Priya: Yeah, I'll write those up and drop them in Notion by end of day.
+Mike: Quick one — the client asked if we can add CSV export. I said I'd get back to them.
+Sarah: Let's not commit to that yet. Mike, tell them we're evaluating it, no promise on timeline.
+Mike: Will do.
+Sarah: Okay, decision: we ship the demo Friday even if CSV export isn't ready. Login fix is the only hard blocker.
+Raj: Agreed.
+Sarah: And someone should really update the staging environment, it's a week behind. We'll sort that out later.
+Sarah: Alright, that's it. Thanks all.

@@ -1,0 +1,14 @@
+Client Onboarding Call — Acme Corp — 2026-08-05
+
+Dana (us): Thanks for joining. Today's goal is to lock the integration timeline.
+Tom (Acme): Sounds good. Our main concern is the SSO piece.
+Dana: Understood. We'll deliver a working SSO prototype by August 20th, and I'll send over the technical spec this week.
+Tom: Perfect. On our side, we need to provision the test accounts. I'll get those to you by end of next week.
+Dana: Great. One thing — who's handling the data migration on your end?
+Tom: Honestly, that's still up in the air internally. I'll have to check and get back to you.
+Dana: No problem, just flag it when you know. We also discussed the reporting module, but let's park that until phase 2.
+Tom: Agreed, phase 2 for reporting.
+Dana: Decision then: phase 1 is SSO plus the core dashboard, reporting moves to phase 2.
+Tom: Works for us.
+Dana: I'll circulate meeting notes and the updated SOW by Friday.
+Tom: Looking forward to it. Thanks Dana.

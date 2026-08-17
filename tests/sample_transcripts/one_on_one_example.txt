@@ -1,0 +1,13 @@
+1:1 — Maya & Manager — 2026-08-04
+
+Manager: How's the quarter feeling for you?
+Maya: Pretty good. The reporting feature shipped, I'm proud of it.
+Manager: You should be. What's next on your plate?
+Maya: I want to start on the API rate-limiting work. I'll draft a design doc by next Monday.
+Manager: Love it. Loop in Raj for the review when it's ready.
+Maya: Will do. Also I'd like to attend the AI conference in September.
+Manager: Send me the details and I'll approve the budget.
+Maya: Thanks. One more — I've been feeling a bit blocked on the deploy access.
+Manager: I'll talk to platform team to get you production deploy permissions this week.
+Maya: That would help a lot.
+Manager: Anything else? No? Great chat.

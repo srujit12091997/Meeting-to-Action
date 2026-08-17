@@ -1,0 +1,39 @@
+# ---- Core LLM / orchestration ----
+google-genai>=1.0.0   # Gemini provider (free tier) — DEFAULT, select via LLM_PROVIDER
+anthropic>=0.40.0     # optional alternative provider (LLM_PROVIDER=anthropic)
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# ---- Backend ----
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9   # required for the /transcribe file-upload endpoint
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+python-dotenv>=1.0.0
+
+# ---- Speech-to-text (live mic) ----
+faster-whisper>=1.0.0
+sounddevice>=0.4.6
+numpy>=1.26.0
+
+# ---- Integrations ----
+notion-client>=2.2.1,<4  # code pins API version 2022-06-28 (see app/integrations/notion.py)
+slack-sdk>=3.33.0
+
+# ---- Database ----
+SQLAlchemy>=2.0.0
+# psycopg[binary]>=3.2.0   # uncomment for Postgres/Supabase (production path)
+
+# ---- Scheduling ----
+APScheduler>=3.10.0
+
+# ---- Observability ----
+langfuse>=2.50.0
+
+# ---- Frontend (MVP) ----
+streamlit>=1.38.0
+requests>=2.32.0
+
+# ---- Dev / testing ----
+pytest>=8.0.0

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meeting-to-Action Agent</title>
+<style>
+  :root{
+    --indigo:#6366f1; --indigo-d:#4f46e5; --ink:#0f172a; --muted:#64748b;
+    --line:#e5e7eb; --bg:#f6f7fb; --card:#ffffff; --ok:#16a34a; --flag:#dc2626;
+    --shadow:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);}
+  a{color:var(--indigo-d);text-decoration:none}
+  button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:.55rem .9rem;font-weight:600}
+  .btn-primary{background:var(--indigo);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.35)}
+  .btn-primary:hover{background:var(--indigo-d)}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--indigo);color:var(--indigo-d)}
+  .btn-danger{background:var(--flag);color:#fff}
+  input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;
+       background:#fff;color:var(--ink);width:100%}
+  input:focus,textarea:focus,select:focus{outline:2px solid rgba(99,102,241,.35);border-color:var(--indigo)}
+
+  /* Navbar */
+  nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);}
+  .nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem;flex-wrap:wrap}
+  .brand{font-weight:800;font-size:1.15rem;color:var(--indigo-d);display:flex;align-items:center;gap:.4rem}
+  .tabs{display:flex;gap:.3rem;margin-left:.4rem}
+  .tab{background:transparent;color:var(--muted);padding:.45rem .8rem;border-radius:8px}
+  .tab.active{background:#eef2ff;color:var(--indigo-d)}
+  .spacer{flex:1}
+  .nav-controls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .nav-controls input{width:180px}
+  .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--flag);display:inline-block;margin-right:.4rem;
+      animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+
+  main{max-width:1200px;margin:1.2rem auto;padding:0 1.2rem}
+  .grid{display:grid;grid-template-columns:1.9fr 1fr;gap:1.1rem}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}.nav-controls input{width:130px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.1rem 1.2rem;box-shadow:var(--shadow)}
+  .card h2{margin:.1rem 0 .8rem;font-size:1.05rem;display:flex;align-items:center;gap:.5rem}
+  .muted{color:var(--muted)}
+  .count{background:#eef2ff;color:var(--indigo-d);border-radius:999px;padding:.05rem .55rem;font-size:.85rem;margin-left:.3rem}
+
+  .transcript{min-height:260px;max-height:360px;overflow-y:auto;line-height:1.6;white-space:pre-wrap;
+      background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:.9rem}
+  .stats{display:flex;gap:.6rem;margin-bottom:.7rem}
+  .stat{flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem;text-align:center}
+  .stat b{display:block;font-size:1.05rem}
+  .stat span{font-size:.72rem;color:var(--muted)}
+
+  .ai-list{max-height:360px;overflow-y:auto}
+  .ai{border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem;margin-bottom:.6rem;background:#fff}
+  .ai b{display:block;margin-bottom:.2rem}
+  .pill{display:inline-block;padding:.08rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700}
+  .pill-ok{background:#dcfce7;color:#166534}.pill-flag{background:#fee2e2;color:#991b1b}
+
+  /* Chat */
+  .chat{max-height:260px;overflow-y:auto;margin-bottom:.7rem}
+  .msg{padding:.55rem .8rem;border-radius:12px;margin:.4rem 0;max-width:85%}
+  .msg.user{background:#eef2ff;margin-left:auto}
+  .msg.assistant{background:#f1f5f9}
+  .ask-row{display:flex;gap:.5rem}
+
+  .cards-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:760px){.cards-2{grid-template-columns:1fr}}
+  ul.tight{margin:.3rem 0;padding-left:1.1rem}ul.tight li{margin:.2rem 0}
+
+  .toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;padding:.7rem 1rem;
+      border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:50}
+  .toast.show{opacity:1;transform:none}
+  .hidden{display:none!important}
+  details.settings{margin:0 0 1.1rem}
+  details.settings summary{cursor:pointer;color:var(--muted);font-weight:600;padding:.3rem 0}
+  .set-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-top:.6rem}
+  @media(max-width:760px){.set-grid{grid-template-columns:1fr}}
+  label.lbl{font-size:.8rem;color:var(--muted);display:block;margin-bottom:.25rem}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line);font-size:.92rem}
+  th{color:var(--muted);font-weight:600}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <div class="brand">📝 <span>Meeting‑to‑Action</span></div>
+    <div class="tabs">
+      <button class="tab active" id="tab-dash" onclick="showView('dashboard')">Dashboard</button>
+      <button class="tab" id="tab-hist" onclick="showView('history')">History</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="nav-controls">
+      <input id="mtitle" placeholder="Team standup" />
+      <input type="file" id="file" accept="audio/*" class="hidden" />
+      <button class="btn-ghost" onclick="document.getElementById('file').click()">📁 Upload audio</button>
+      <button class="btn-primary" id="recBtn" onclick="toggleMeeting()">▶ Start live meeting</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <details class="settings">
+      <summary>⚙️ Settings — date, team members, microphone</summary>
+      <div class="set-grid">
+        <div><label class="lbl">Meeting date (YYYY-MM-DD)</label><input id="mdate" placeholder="2026-08-15"></div>
+        <div><label class="lbl">Known team members (comma-separated)</label><input id="roster" placeholder="Sarah, Raj, Priya"></div>
+        <div><label class="lbl">Microphone</label><select id="mic"></select></div>
+      </div>
+    </details>
+
+    <div class="grid">
+      <div class="card">
+        <h2>🎙️ Live Transcript <span id="recIndicator" class="hidden"><span class="rec-dot"></span><span class="muted" style="font-size:.8rem">recording…</span></span></h2>
+        <div class="stats hidden" id="stats">
+          <div class="stat"><b id="s-sec">0s</b><span>captured</span></div>
+          <div class="stat"><b id="s-seg">0</b><span>segments</span></div>
+          <div class="stat"><b id="s-words">0</b><span>words</span></div>
+        </div>
+        <div class="transcript" id="transcript"><span class="muted">Press ▶ Start live meeting, or 📁 Upload audio.</span></div>
+        <div class="muted" id="thinking" style="margin-top:.5rem"></div>
+      </div>
+
+      <div class="card">
+        <h2>📌 Action Items <span class="count" id="aiCount">0</span></h2>
+        <div class="ai-list" id="aiList"><p class="muted">0 so far. Say “Sarah will finalize the budget by Friday.”</p></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.1rem">
+      <h2>💬 Ask the agent</h2>
+      <div class="chat" id="chat"></div>
+      <div class="ask-row">
+        <input id="askInput" placeholder="Start a meeting first to ask questions." disabled />
+        <button class="btn-primary" id="askBtn" onclick="askAgent()" disabled>Ask</button>
+      </div>
+    </div>
+
+    <!-- RESULTS (after meeting) -->
+    <div id="results" class="hidden" style="margin-top:1.1rem">
+      <div class="card">
+        <h2>📄 Meeting Summary</h2>
+        <div class="cards-2">
+          <div>
+            <div class="card" style="box-shadow:none"><h2>Overview</h2><p id="r-summary" class="muted"></p></div>
+            <div class="card" style="box-shadow:none;margin-top:.8rem"><h2>✅ Key Decisions</h2><ul class="tight" id="r-decisions"></ul></div>
+          </div>
+          <div>
+            <div class="card" style="box-shadow:none"><h2>💡 Proposed Solutions</h2><ul class="tight" id="r-solutions"></ul></div>
+            <div class="card" style="box-shadow:none;margin-top:.8rem"><h2>📌 Next Action Steps</h2><ul class="tight" id="r-actions"></ul></div>
+          </div>
+        </div>
+        <div style="margin-top:.9rem"><button class="btn-ghost" onclick="downloadSummary()">⬇️ Download summary (.md)</button></div>
+      </div>
+
+      <div class="card" style="margin-top:1.1rem">
+        <h2>🚀 Share & schedule</h2>
+        <div class="cards-2">
+          <div>
+            <label class="lbl">📧 Email the summary — recipients (comma-separated)</label>
+            <div class="ask-row"><input id="emailTo" placeholder="alice@team.com, bob@team.com">
+              <button class="btn-primary" onclick="sendEmail()">Send</button></div>
+          </div>
+          <div>
+            <label class="lbl">📅 Add tasks to calendar</label>
+            <div class="ask-row">
+              <button class="btn-ghost" onclick="downloadIcs()">⬇️ Download .ics (with reminders)</button>
+            </div>
+            <div id="gcal" style="margin-top:.5rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.1rem">
+        <h2>✅ Confirm & push to Notion</h2>
+        <p class="muted">Ambiguous/unresolved owners are flagged 🚩. Push when ready.</p>
+        <div id="pushList"></div>
+        <button class="btn-primary" style="margin-top:.6rem" onclick="pushNotion()">✅ Push to Notion</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="history" class="hidden">
+    <div class="card">
+      <h2>🕘 Meeting history</h2>
+      <div id="histBody"><p class="muted">Loading…</p></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let recording=false, stream=null, activeRec=null;
+let transcriptParts=[], lastExtractAt=0, lastExtraction=null, chat=[], seconds=0, segments=0;
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+function meta(){return {title:$('mtitle').value.trim(), date:$('mdate').value.trim(),
+  owners:$('roster').value.split(',').map(s=>s.trim()).filter(Boolean)};}
+function transcriptText(){return transcriptParts.join(' ').trim();}
+
+function showView(v){
+  $('dashboard').classList.toggle('hidden', v!=='dashboard');
+  $('history').classList.toggle('hidden', v!=='history');
+  $('tab-dash').classList.toggle('active', v==='dashboard');
+  $('tab-hist').classList.toggle('active', v==='history');
+  if(v==='history') loadHistory();
+}
+
+/* ---------------- Microphone enumeration ---------------- */
+async function listMics(){
+  try{
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    const sel=$('mic'); sel.innerHTML='';
+    devs.filter(d=>d.kind==='audioinput').forEach((d,i)=>{
+      const o=document.createElement('option'); o.value=d.deviceId;
+      o.textContent=d.label||('Microphone '+(i+1)); sel.appendChild(o);
+    });
+  }catch(e){}
+}
+navigator.mediaDevices?.enumerateDevices && listMics();
+
+/* ---------------- Recording ---------------- */
+function pickMime(){
+  for(const m of ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'])
+    if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+function setRecUI(on){
+  recording=on;
+  $('recBtn').textContent = on?'⏹ Stop meeting':'▶ Start live meeting';
+  $('recBtn').className = on?'btn-danger':'btn-primary';
+  $('recIndicator').classList.toggle('hidden',!on);
+  $('stats').classList.toggle('hidden',!on);
+  $('thinking').textContent = on?'🧠 Understanding the conversation and breaking it into tasks…':'';
+  updateAskState();
+}
+async function toggleMeeting(){ recording ? stopMeeting() : startMeeting(); }
+
+async function startMeeting(){
+  const mime=pickMime();
+  if(!mime){ toast('Your browser does not support audio recording.'); return; }
+  const micId=$('mic').value;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio: micId?{deviceId:{exact:micId}}:true});
+  }catch(e){ toast('Mic access denied / unavailable: '+e.message); return; }
+  transcriptParts=[]; seconds=0; segments=0; lastExtraction=null; chat=[];
+  $('results').classList.add('hidden'); renderTranscript(); renderChat();
+  setRecUI(true); listMics();
+  recordSegment(mime);
+}
+function stopMeeting(){
+  setRecUI(false);
+  if(activeRec && activeRec.state!=='inactive') activeRec.stop();  // triggers finalize in onstop
+}
+function recordSegment(mime){
+  const rec = new MediaRecorder(stream, mime?{mimeType:mime}:undefined);
+  const local=[];
+  rec.ondataavailable = e=>{ if(e.data && e.data.size) local.push(e.data); };
+  rec.onstop = async ()=>{
+    const blob = new Blob(local, {type: rec.mimeType});
+    if(blob.size > 1200){
+      const text = await transcribeBlob(blob);
+      if(text){ transcriptParts.push(text); segments++; renderTranscript(); }
+    }
+    if(recording){ recordSegment(mime); maybeExtract(); }
+    else { stream.getTracks().forEach(t=>t.stop()); await finalize(); }
+  };
+  rec.start(); activeRec=rec;
+  setTimeout(()=>{ if(rec.state==='recording'){ seconds+=7; rec.stop(); } }, 7000);
+}
+
+async function transcribeBlob(blob){
+  const fd=new FormData();
+  const ext = (blob.type.includes('ogg'))?'ogg':'webm';
+  fd.append('audio', blob, 'seg.'+ext);
+  try{ const r=await fetch('/api/transcribe',{method:'POST',body:fd});
+       const j=await r.json(); return (j.transcript||'').trim(); }
+  catch(e){ return ''; }
+}
+
+/* ---------------- Extraction ---------------- */
+async function runExtract(text){
+  if(!text || !text.trim()) return null;
+  const m=meta();
+  try{
+    const r=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({transcript:text, meeting_title:m.title||null, meeting_date:m.date||null, known_owners:m.owners})});
+    if(!r.ok) return null;
+    const j=await r.json(); lastExtraction=j.extraction; renderActionItems(); return j.extraction;
+  }catch(e){ return null; }
+}
+async function maybeExtract(){
+  const now=Date.now(); if(now-lastExtractAt < 12000) return;
+  lastExtractAt=now; await runExtract(transcriptText());
+}
+async function finalize(){
+  const text=transcriptText();
+  if(!text){ toast('No speech captured.'); return; }
+  $('thinking').textContent='Summarizing…';
+  const ext=await runExtract(text);
+  $('thinking').textContent='';
+  if(ext){ renderResults(ext); updateAskState(); }
+}
+
+/* ---------------- Rendering ---------------- */
+function renderTranscript(){
+  const t=transcriptText();
+  $('transcript').innerHTML = t ? t : '<span class="muted">Listening…</span>';
+  $('transcript').scrollTop = $('transcript').scrollHeight;
+  $('s-sec').textContent=seconds+'s'; $('s-seg').textContent=segments;
+  $('s-words').textContent = t? t.split(/\s+/).length : 0;
+}
+function renderActionItems(){
+  const items=(lastExtraction&&lastExtraction.action_items)||[];
+  $('aiCount').textContent=items.length;
+  $('aiList').innerHTML = items.length ? items.map(it=>{
+    const owner=it.owner||'🚩 Unassigned'; const due=it.deadline||'no deadline';
+    return `<div class="ai"><b>${esc(it.task)}</b><span class="muted">${esc(owner)} · due ${esc(due)}</span></div>`;
+  }).join('') : '<p class="muted">0 so far. Say “Sarah will finalize the budget by Friday.”</p>';
+}
+function renderResults(ext){
+  $('results').classList.remove('hidden');
+  $('r-summary').textContent = ext.summary || 'No summary.';
+  fill('r-decisions', ext.decisions); fill('r-solutions', ext.proposed_solutions);
+  $('r-actions').innerHTML = (ext.action_items||[]).map(it=>
+    `<li><b>${esc(it.task)}</b> — ${esc(it.owner||'Unassigned')} · due <i>${esc(it.deadline||'no deadline')}</i></li>`
+  ).join('') || '<li class="muted">None</li>';
+  // push list
+  $('pushList').innerHTML = (ext.action_items||[]).map(it=>{
+    const ok=it.owner_status==='resolved';
+    return `<div class="ai"><b>${esc(it.task)}</b><span class="pill ${ok?'pill-ok':'pill-flag'}">${ok?'resolved':'review'}</span>
+      <div class="muted">${esc(it.owner||'Unassigned')} · due ${esc(it.deadline||'no deadline')}</div></div>`;
+  }).join('') || '<p class="muted">No action items.</p>';
+  // gcal links
+  const dated=(ext.action_items||[]).filter(it=>it.deadline);
+  $('gcal').innerHTML = dated.length ? '<div class="muted" style="font-size:.8rem;margin-bottom:.2rem">Or one-click add to Google Calendar:</div>'+
+     dated.map(it=>`<div>• <a href="${gcalLink(it,ext.meeting_title)}" target="_blank">📅 ${esc(it.task)}</a></div>`).join('')
+     : '<span class="muted">No tasks have deadlines to schedule.</span>';
+}
+function fill(id, arr){ $(id).innerHTML=(arr&&arr.length)?arr.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="muted">None</li>'; }
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------------- Ask the agent ---------------- */
+function updateAskState(){
+  const has=transcriptText().length>0 && !recording;
+  $('askInput').disabled=!has; $('askBtn').disabled=!has;
+  $('askInput').placeholder = recording ? 'Recording… stop the meeting to ask questions.'
+      : (has?'Ask anything about the meeting…':'Start a meeting first to ask questions.');
+}
+async function askAgent(){
+  const q=$('askInput').value.trim(); if(!q) return;
+  chat.push({role:'user',text:q}); renderChat(); $('askInput').value='';
+  try{
+    const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({transcript:transcriptText(), question:q})});
+    const j=await r.json(); chat.push({role:'assistant',text:j.answer||'(no answer)'});
+  }catch(e){ chat.push({role:'assistant',text:'⚠️ Model busy, please ask again.'}); }
+  renderChat();
+}
+function renderChat(){ $('chat').innerHTML = chat.map(m=>`<div class="msg ${m.role}">${esc(m.text)}</div>`).join('');
+  $('chat').scrollTop=$('chat').scrollHeight; }
+$('askInput').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!$('askBtn').disabled) askAgent(); });
+
+/* ---------------- Upload ---------------- */
+$('file').addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  toast('Transcribing upload…');
+  const fd=new FormData(); fd.append('audio', f, f.name);
+  const r=await fetch('/api/transcribe',{method:'POST',body:fd}); const j=await r.json();
+  transcriptParts=[j.transcript||'']; renderTranscript();
+  const ext=await runExtract(transcriptText()); if(ext) renderResults(ext); updateAskState();
+});
+
+/* ---------------- Summary / Share ---------------- */
+function summaryMd(ext){
+  const li=a=>(a&&a.length?a.map(x=>'- '+x).join('\n'):'- (none)');
+  const acts=(ext.action_items||[]).map(it=>`- ${it.task} — ${it.owner||'Unassigned'} (due ${it.deadline||'no deadline'})`).join('\n')||'- (none)';
+  return `# Meeting Summary\n\n## Overview\n${ext.summary||''}\n\n## Key Decisions\n${li(ext.decisions)}\n\n## Proposed Solutions\n${li(ext.proposed_solutions)}\n\n## Next Action Steps\n${acts}`;
+}
+function summaryHtml(ext){
+  const ul=a=>(a&&a.length?'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p><i>None</i></p>');
+  const acts=(ext.action_items||[]).map(it=>`<li><b>${esc(it.task)}</b> — ${esc(it.owner||'Unassigned')} (due ${esc(it.deadline||'no deadline')})</li>`).join('');
+  return `<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#4f46e5">📝 Meeting Summary</h2>
+    <h3>Overview</h3><p>${esc(ext.summary||'')}</p>
+    <h3>✅ Key Decisions</h3>${ul(ext.decisions)}
+    <h3>💡 Proposed Solutions</h3>${ul(ext.proposed_solutions)}
+    <h3>📌 Next Action Steps</h3>${acts?'<ul>'+acts+'</ul>':'<p><i>None</i></p>'}</div>`;
+}
+function download(name, text, type){
+  const b=new Blob([text],{type}); const u=URL.createObjectURL(b);
+  const a=document.createElement('a'); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u);
+}
+function downloadSummary(){ if(lastExtraction) download('meeting_summary.md', summaryMd(lastExtraction),'text/markdown'); }
+async function downloadIcs(){
+  if(!lastExtraction) return;
+  const r=await fetch('/api/calendar-ics',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action_items:lastExtraction.action_items||[], meeting_title:lastExtraction.meeting_title})});
+  const j=await r.json();
+  if(!j.events){ toast('No tasks with deadlines to schedule.'); return; }
+  download('meeting_tasks.ics', j.ics, 'text/calendar'); toast(j.events+' event(s) in .ics');
+}
+function gcalLink(it, title){
+  const d=(it.deadline||'').replaceAll('-',''); if(!d) return '#';
+  const end=new Date(it.deadline); end.setDate(end.getDate()+1);
+  const e=end.toISOString().slice(0,10).replaceAll('-','');
+  const p=new URLSearchParams({action:'TEMPLATE',text:`${it.task} — ${it.owner||'Unassigned'}`,
+    dates:`${d}/${e}`, details:`Action item from: ${title||'Meeting'}`});
+  return 'https://calendar.google.com/calendar/render?'+p.toString();
+}
+async function sendEmail(){
+  if(!lastExtraction) return;
+  const to=$('emailTo').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!to.length){ toast('Add at least one recipient.'); return; }
+  const r=await fetch('/api/email-summary',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({recipients:to, subject:`Meeting Summary — ${lastExtraction.meeting_title||'Meeting'}`, html:summaryHtml(lastExtraction)})});
+  if(r.status===400){ toast((await r.json()).detail); return; }
+  if(r.ok){ toast('📨 Sent to '+(await r.json()).sent+' recipient(s).'); } else { toast('Email failed.'); }
+}
+
+/* ---------------- Notion / History ---------------- */
+async function pushNotion(){
+  if(!lastExtraction) return;
+  const r=await fetch('/api/confirm',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({items:lastExtraction.action_items||[], meeting_label:meta().title||'meeting'})});
+  if(r.ok){ toast('🎉 Pushed '+(await r.json()).pushed+' tasks to Notion.'); } else { toast('Push failed.'); }
+}
+async function loadHistory(){
+  $('histBody').innerHTML='<p class="muted">Loading…</p>';
+  try{
+    const r=await fetch('/api/history'); const j=await r.json();
+    if(!j.tasks.length){ $('histBody').innerHTML='<p class="muted">No tasks yet. Run a meeting and push to Notion.</p>'; return; }
+    $('histBody').innerHTML='<table><thead><tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th><th>Meeting</th><th>Created</th></tr></thead><tbody>'+
+      j.tasks.map(t=>`<tr><td>${esc(t.task)}</td><td>${esc(t.owner||'—')}</td><td>${esc(t.deadline||'—')}</td>
+      <td>${esc(t.status)}</td><td>${esc(t.meeting||'—')}</td><td>${esc((t.created_at||'').slice(0,10))}</td></tr>`).join('')+'</tbody></table>';
+  }catch(e){ $('histBody').innerHTML='<p class="muted">Couldn\\'t load history.</p>'; }
+}
+</script>
+</body>
+</html>

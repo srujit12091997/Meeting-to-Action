@@ -1,0 +1,17 @@
+Sprint Planning — 2026-08-06
+
+Alex: Okay so the big items this sprint — payments refactor, the onboarding flow—
+Jordan: —wait, are we doing the whole payments refactor or just the Stripe part?
+Alex: Just Stripe for now.
+Sam: I can take Stripe. Actually, no, I'm swamped with the mobile build. Someone else should grab it.
+Jordan: I could, but I've never touched that code.
+Alex: Let's decide offline who owns Stripe. For now it's unassigned.
+Sam: The onboarding flow though — I'll definitely knock that out this week.
+Jordan: And I'll pair with Sam on it if there's time.
+Alex: Cool. Also we need to update the docs, they're really out of date.
+Jordan: Yeah someone should do that.
+Alex: Right... let's not let that slip again. We'll assign it next standup.
+Sam: What about the flaky tests?
+Alex: Ugh. I'll look at the flaky CI tests myself, probably Wednesday.
+Alex: Decision: this sprint we commit to onboarding flow and Stripe integration. Docs and flaky tests are stretch.
+Jordan: Sounds right.
